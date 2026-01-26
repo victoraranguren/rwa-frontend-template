@@ -13,7 +13,7 @@ export function Header() {
               <span className="text-lg font-black text-background">xS</span>
             </div>
             <div>
-              <span className="text-xl font-bold text-foreground">xStocks</span>
+              <span className="text-xl font-bold text-foreground">wStocks</span>
               <Badge variant="outline" className="ml-2 text-xs border-solana-cyan/50 text-solana-cyan">
                 Solana
               </Badge>
@@ -28,9 +28,9 @@ export function Header() {
             <a href="#tokens" className="text-sm text-muted-foreground hover:text-solana-green transition-colors">
               Tokens
             </a>
-            <a 
-              href="https://solana.com" 
-              target="_blank" 
+            <a
+              href="https://solana.com"
+              target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-muted-foreground hover:text-solana-green transition-colors"
             >
@@ -42,7 +42,7 @@ export function Header() {
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-solana-green/10 border border-solana-green/30">
               <div className="w-2 h-2 rounded-full bg-solana-green animate-pulse" />
-              <span className="text-xs text-solana-green font-medium">Mainnet</span>
+              <span className="text-xs text-solana-green font-medium">Devnet</span>
             </div>
           </div>
         </div>

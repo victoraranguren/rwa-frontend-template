@@ -1,43 +1,45 @@
-"use client"
+"use client";
 
-import React from "react"
+import React from "react";
 
-import { useState } from "react"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
-import { Loader2, Rocket, FileText, Coins, ExternalLink } from "lucide-react"
+} from "@/components/ui/select";
+import { Loader2, Rocket, FileText, Coins } from "lucide-react";
+import { toast } from "sonner";
 
 interface AssetRegistryFormData {
-  assetSymbol: string
-  assetIsin: string
-  legalDocUri: string
-  assetType: number
+  assetSymbol: string;
+  assetIsin: string;
+  legalDocUri: string;
+  assetType: number;
 }
 
 interface TokenMetadataFormData {
-  name: string
-  symbol: string
-  decimals: number
-  initialSupply: string
+  name: string;
+  symbol: string;
+  decimals: number;
+  initialSupply: string;
 }
 
 interface CreateAssetFormProps {
-  onSubmit?: (data: { registry: AssetRegistryFormData; token: TokenMetadataFormData }) => void
+  onSubmit?: (data: {
+    registry: AssetRegistryFormData;
+    token: TokenMetadataFormData;
+  }) => void;
 }
 
 export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
-  const { toast } = useToast()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Asset Registry Form State
   const [registryData, setRegistryData] = useState<AssetRegistryFormData>({
@@ -45,7 +47,7 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
     assetIsin: "",
     legalDocUri: "",
     assetType: 0,
-  })
+  });
 
   // Token Metadata Form State
   const [tokenData, setTokenData] = useState<TokenMetadataFormData>({
@@ -53,76 +55,76 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
     symbol: "",
     decimals: 6,
     initialSupply: "",
-  })
+  });
 
   // Validation
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     // Registry validation
     if (!registryData.assetSymbol.trim()) {
-      newErrors.assetSymbol = "Asset symbol is required"
+      newErrors.assetSymbol = "Asset symbol is required";
     } else if (registryData.assetSymbol.length > 10) {
-      newErrors.assetSymbol = "Symbol must be 10 characters or less"
+      newErrors.assetSymbol = "Symbol must be 10 characters or less";
     }
 
     if (!registryData.assetIsin.trim()) {
-      newErrors.assetIsin = "ISIN is required"
+      newErrors.assetIsin = "ISIN is required";
     }
 
     if (!registryData.legalDocUri.trim()) {
-      newErrors.legalDocUri = "Legal document URI is required"
+      newErrors.legalDocUri = "Legal document URI is required";
     } else if (!isValidUrl(registryData.legalDocUri)) {
-      newErrors.legalDocUri = "Please enter a valid URL"
+      newErrors.legalDocUri = "Please enter a valid URL";
     }
 
     // Token validation
     if (!tokenData.name.trim()) {
-      newErrors.tokenName = "Token name is required"
+      newErrors.tokenName = "Token name is required";
     }
 
     if (!tokenData.symbol.trim()) {
-      newErrors.tokenSymbol = "Token symbol is required"
+      newErrors.tokenSymbol = "Token symbol is required";
     }
 
     if (tokenData.decimals < 0 || tokenData.decimals > 9) {
-      newErrors.decimals = "Decimals must be between 0 and 9"
+      newErrors.decimals = "Decimals must be between 0 and 9";
     }
 
     if (!tokenData.initialSupply.trim()) {
-      newErrors.initialSupply = "Initial supply is required"
-    } else if (Number.isNaN(Number(tokenData.initialSupply)) || Number(tokenData.initialSupply) <= 0) {
-      newErrors.initialSupply = "Please enter a valid supply amount"
+      newErrors.initialSupply = "Initial supply is required";
+    } else if (
+      Number.isNaN(Number(tokenData.initialSupply)) ||
+      Number(tokenData.initialSupply) <= 0
+    ) {
+      newErrors.initialSupply = "Please enter a valid supply amount";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const isValidUrl = (string: string): boolean => {
     try {
-      new URL(string)
-      return true
+      new URL(string);
+      return true;
     } catch {
-      return false
+      return false;
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
+    e.preventDefault();
     if (!validateForm()) {
-      toast({
-        variant: "destructive",
-        title: "Validation Error",
+      toast("Validation Error", {
         description: "Please fix the errors in the form before submitting.",
-      })
-      return
+      });
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       // Prepare the data for Solana program call
@@ -137,39 +139,44 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
           decimals: Number(tokenData.decimals),
           initialSupply: tokenData.initialSupply,
         },
-      }
+      };
 
       // Log the data for Solana program integration
-      console.log("=== xStocks Asset Registration Data ===")
-      console.log("Asset Registry Data:", JSON.stringify(submissionData.registry, null, 2))
-      console.log("Token Metadata:", JSON.stringify(submissionData.token, null, 2))
-      console.log("Full Payload:", JSON.stringify(submissionData, null, 2))
-      console.log("=====================================")
+      console.log("=== wStocks Asset Registration Data ===");
+      console.log(
+        "Asset Registry Data:",
+        JSON.stringify(submissionData.registry, null, 2),
+      );
+      console.log(
+        "Token Metadata:",
+        JSON.stringify(submissionData.token, null, 2),
+      );
+      console.log("Full Payload:", JSON.stringify(submissionData, null, 2));
+      console.log("=====================================");
 
       // Call optional onSubmit callback
       if (onSubmit) {
-        onSubmit(submissionData)
+        onSubmit(submissionData);
       }
 
       // Simulate transaction delay
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Generate a fake transaction signature for devnet
       const fakeSignature = Array.from({ length: 88 }, () =>
-        Math.random().toString(36).charAt(2)
-      ).join('')
+        Math.random().toString(36).charAt(2),
+      ).join("");
 
-      const solscanUrl = `https://solscan.io/tx/${fakeSignature}?cluster=devnet`
+      const solscanUrl = `https://solscan.io/tx/${fakeSignature}?cluster=devnet`;
 
-      toast({
-        title: "Transaction Successful",
+      toast("Transaction Successful", {
         description: `Asset ${registryData.assetSymbol.toUpperCase()} has been registered.`,
         className: "border-solana-green/50 bg-solana-green/10",
         action: {
           label: "View on Solscan",
           onClick: () => window.open(solscanUrl, "_blank"),
         },
-      })
+      });
 
       // Reset form
       setRegistryData({
@@ -177,24 +184,25 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
         assetIsin: "",
         legalDocUri: "",
         assetType: 0,
-      })
+      });
       setTokenData({
         name: "",
         symbol: "",
         decimals: 6,
         initialSupply: "",
-      })
+      });
     } catch (error) {
-      console.error("Transaction failed:", error)
-      toast({
-        variant: "destructive",
-        title: "Transaction Failed",
-        description: error instanceof Error ? error.message : "An unexpected error occurred. Please try again.",
-      })
+      console.error("Transaction failed:", error);
+      toast.warning("Transaction Failed", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred. Please try again.",
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Card className="glass-card overflow-hidden">
@@ -207,7 +215,9 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
             </div>
             <div>
               <h3 className="font-semibold text-foreground">Asset Registry</h3>
-              <p className="text-xs text-muted-foreground">On-chain registration data</p>
+              <p className="text-xs text-muted-foreground">
+                On-chain registration data
+              </p>
             </div>
           </div>
 
@@ -220,7 +230,10 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
               placeholder="e.g., WAAPL, WTSLA"
               value={registryData.assetSymbol}
               onChange={(e) =>
-                setRegistryData({ ...registryData, assetSymbol: e.target.value.toUpperCase() })
+                setRegistryData({
+                  ...registryData,
+                  assetSymbol: e.target.value.toUpperCase(),
+                })
               }
               className="bg-secondary/50 border-border focus:border-solana-green focus:ring-solana-green/20 uppercase"
               maxLength={10}
@@ -255,7 +268,10 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
             <Select
               value={registryData.assetType.toString()}
               onValueChange={(value) =>
-                setRegistryData({ ...registryData, assetType: Number.parseInt(value) })
+                setRegistryData({
+                  ...registryData,
+                  assetType: Number.parseInt(value),
+                })
               }
             >
               <SelectTrigger className="bg-secondary/50 border-border focus:border-solana-green focus:ring-solana-green/20">
@@ -279,7 +295,10 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
               placeholder="https://..."
               value={registryData.legalDocUri}
               onChange={(e) =>
-                setRegistryData({ ...registryData, legalDocUri: e.target.value })
+                setRegistryData({
+                  ...registryData,
+                  legalDocUri: e.target.value,
+                })
               }
               className="bg-secondary/50 border-border focus:border-solana-green focus:ring-solana-green/20"
             />
@@ -298,7 +317,9 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
             <div className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center">
-            <span className="px-4 bg-card text-xs text-muted-foreground">Token Configuration</span>
+            <span className="px-4 bg-card text-xs text-muted-foreground">
+              Token Configuration
+            </span>
           </div>
         </div>
 
@@ -310,7 +331,9 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
             </div>
             <div>
               <h3 className="font-semibold text-foreground">Token Metadata</h3>
-              <p className="text-xs text-muted-foreground">SPL Token configuration</p>
+              <p className="text-xs text-muted-foreground">
+                SPL Token configuration
+              </p>
             </div>
           </div>
 
@@ -322,7 +345,9 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
               id="tokenName"
               placeholder="e.g., Wrapped Apple Inc."
               value={tokenData.name}
-              onChange={(e) => setTokenData({ ...tokenData, name: e.target.value })}
+              onChange={(e) =>
+                setTokenData({ ...tokenData, name: e.target.value })
+              }
               className="bg-secondary/50 border-border focus:border-solana-purple focus:ring-solana-purple/20"
             />
             {errors.tokenName && (
@@ -339,7 +364,10 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
               placeholder="e.g., WAAPL"
               value={tokenData.symbol}
               onChange={(e) =>
-                setTokenData({ ...tokenData, symbol: e.target.value.toUpperCase() })
+                setTokenData({
+                  ...tokenData,
+                  symbol: e.target.value.toUpperCase(),
+                })
               }
               className="bg-secondary/50 border-border focus:border-solana-purple focus:ring-solana-purple/20 uppercase"
               maxLength={10}
@@ -361,7 +389,10 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
                 max={9}
                 value={tokenData.decimals}
                 onChange={(e) =>
-                  setTokenData({ ...tokenData, decimals: Number.parseInt(e.target.value) || 0 })
+                  setTokenData({
+                    ...tokenData,
+                    decimals: Number.parseInt(e.target.value) || 0,
+                  })
                 }
                 className="bg-secondary/50 border-border focus:border-solana-purple focus:ring-solana-purple/20"
               />
@@ -384,15 +415,18 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
                 className="bg-secondary/50 border-border focus:border-solana-purple focus:ring-solana-purple/20"
               />
               {errors.initialSupply && (
-                <p className="text-xs text-destructive">{errors.initialSupply}</p>
+                <p className="text-xs text-destructive">
+                  {errors.initialSupply}
+                </p>
               )}
             </div>
           </div>
 
           <div className="p-4 rounded-xl bg-solana-purple/10 border border-solana-purple/20">
             <p className="text-sm text-muted-foreground">
-              <span className="text-solana-purple font-medium">Note:</span> The token will be created
-              with a mint authority set to your connected wallet address.
+              <span className="text-solana-purple font-medium">Note:</span> The
+              token will be created with a mint authority set to your connected
+              wallet address.
             </p>
           </div>
         </div>
@@ -404,7 +438,10 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-solana-green/20 to-solana-purple/20 flex items-center justify-center border border-solana-green/30">
                 <span className="text-base font-bold text-solana-green">
-                  {(registryData.assetSymbol || tokenData.symbol || "XX").slice(0, 2)}
+                  {(registryData.assetSymbol || tokenData.symbol || "XX").slice(
+                    0,
+                    2,
+                  )}
                 </span>
               </div>
               <div className="flex-1">
@@ -412,7 +449,9 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
                   {tokenData.name || registryData.assetSymbol || "Asset Name"}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {registryData.assetSymbol || tokenData.symbol || "SYMBOL"} | {registryData.assetIsin || "ISIN"} | {tokenData.decimals} decimals
+                  {registryData.assetSymbol || tokenData.symbol || "SYMBOL"} |{" "}
+                  {registryData.assetIsin || "ISIN"} | {tokenData.decimals}{" "}
+                  decimals
                 </p>
               </div>
             </div>
@@ -442,5 +481,5 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
       {/* Bottom gradient */}
       <div className="h-1 bg-gradient-to-r from-solana-green via-solana-purple to-solana-cyan opacity-50" />
     </Card>
-  )
+  );
 }

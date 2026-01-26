@@ -1,79 +1,114 @@
-import { Header } from "@/components/header"
-import { AssetRegistryCard } from "@/components/asset-registry-card"
-import { TokenMetadataCard } from "@/components/token-metadata-card"
-import { CreateAssetForm } from "@/components/create-asset-form"
-import { Badge } from "@/components/ui/badge"
-import { Toaster } from "@/components/ui/toaster"
-import { Database, Coins, ArrowRight, PlusCircle } from "lucide-react"
+import { Header } from "@/components/header";
+import { AssetRegistryCard } from "@/components/asset-registry-card";
+import { TokenMetadataCard } from "@/components/token-metadata-card";
+import { CreateAssetForm } from "@/components/create-asset-form";
+import { Badge } from "@/components/ui/badge";
+import { Database, Coins, ArrowRight, PlusCircle } from "lucide-react";
+import { connect } from "solana-kite";
+import * as programClient from "../solana/programs/rwa/client";
+import {
+  getAssetRegistryDecoder,
+  ASSET_REGISTRY_DISCRIMINATOR,
+  ANCHOR_RWA_TEMPLATE_PROGRAM_ADDRESS,
+} from "../solana/programs/rwa/client";
+import {
+  AssetRegistryData,
+  transformAssetAccount,
+} from "@/solana/programs/rwa/types/asset-registry";
+import { getTokenMetadataByAssetRegistryCollection } from "@/solana/programs/rwa/types/tokens";
 
 // Asset Registry Data from Solana
-const assetRegistryData = [
-  {
-    executable: false,
-    lamports: 3118080,
-    programAddress: "jEXgKE9NWJihHqLVAoXZ4e2TSZ7KkV7kub8j4ojcmZC",
-    space: 320,
-    address: "CRsTiPUx8cqbysPzhrdDaUdDgh2cy4PyqXLsHWvX7sVn",
-    data: {
-      id: 1769315914076,
-      authority: "4Uoi3NxSQbp8dFqumxHxgXzJiEXvN5VvGCtUGTNuwAW6",
-      mint: "FcqYDj4LjdptFMdMYd5MbuRbDt3gBHZJRXJ7vcqJMQ6b",
-      assetSymbol: "WAAPL",
-      assetIsin: "VE-WAAPL-001",
-      legalDocUri: "https://www.youtube.com/watch?v=MOl4s-VIuLQ",
-      creationDate: 1769315914,
-      assetType: 0,
-      bump: 255,
-    },
-    exists: true,
-  },
-  {
-    executable: false,
-    lamports: 3118080,
-    programAddress: "jEXgKE9NWJihHqLVAoXZ4e2TSZ7KkV7kub8j4ojcmZC",
-    space: 320,
-    address: "EzqWg4Jj1Mdip5FdCNDbhjWHM5ip1GdbnNh5Asuzz2sm",
-    data: {
-      id: 1769316532249,
-      authority: "4Uoi3NxSQbp8dFqumxHxgXzJiEXvN5VvGCtUGTNuwAW6",
-      mint: "FoPUWmCdjBktTnni7piGGE387hMvNmWnCcTpS5NtT8z1",
-      assetSymbol: "WTSLA",
-      assetIsin: "VE-WTSLA-002",
-      legalDocUri: "https://www.youtube.com/watch?v=MOl4s-VIuLQ",
-      creationDate: 1769316532,
-      assetType: 0,
-      bump: 255,
-    },
-    exists: true,
-  },
-]
+// const assetRegistryData = [
+//   {
+//     executable: false,
+//     lamports: 3118080,
+//     programAddress: "jEXgKE9NWJihHqLVAoXZ4e2TSZ7KkV7kub8j4ojcmZC",
+//     space: 320,
+//     address: "CRsTiPUx8cqbysPzhrdDaUdDgh2cy4PyqXLsHWvX7sVn",
+//     data: {
+//       id: 1769315914076,
+//       authority: "4Uoi3NxSQbp8dFqumxHxgXzJiEXvN5VvGCtUGTNuwAW6",
+//       mint: "FcqYDj4LjdptFMdMYd5MbuRbDt3gBHZJRXJ7vcqJMQ6b",
+//       assetSymbol: "WAAPL",
+//       assetIsin: "VE-WAAPL-001",
+//       legalDocUri: "https://www.youtube.com/watch?v=MOl4s-VIuLQ",
+//       creationDate: 1769315914,
+//       assetType: 0,
+//       bump: 255,
+//     },
+//     exists: true,
+//   },
+//   {
+//     executable: false,
+//     lamports: 3118080,
+//     programAddress: "jEXgKE9NWJihHqLVAoXZ4e2TSZ7KkV7kub8j4ojcmZC",
+//     space: 320,
+//     address: "EzqWg4Jj1Mdip5FdCNDbhjWHM5ip1GdbnNh5Asuzz2sm",
+//     data: {
+//       id: 1769316532249,
+//       authority: "4Uoi3NxSQbp8dFqumxHxgXzJiEXvN5VvGCtUGTNuwAW6",
+//       mint: "FoPUWmCdjBktTnni7piGGE387hMvNmWnCcTpS5NtT8z1",
+//       assetSymbol: "WTSLA",
+//       assetIsin: "VE-WTSLA-002",
+//       legalDocUri: "https://www.youtube.com/watch?v=MOl4s-VIuLQ",
+//       creationDate: 1769316532,
+//       assetType: 0,
+//       bump: 255,
+//     },
+//     exists: true,
+//   },
+// ];
 
 // Token Metadata derived from Asset Registry
-const tokenMetadata = [
-  {
-    mint: "FcqYDj4LjdptFMdMYd5MbuRbDt3gBHZJRXJ7vcqJMQ6b",
-    symbol: "WAAPL",
-    name: "Wrapped Apple Inc.",
-    decimals: 6,
-    supply: "1,000,000",
-    authority: "4Uoi3NxSQbp8dFqumxHxgXzJiEXvN5VvGCtUGTNuwAW6",
-    programId: "jEXgKE9NWJihHqLVAoXZ4e2TSZ7KkV7kub8j4ojcmZC",
-  },
-  {
-    mint: "FoPUWmCdjBktTnni7piGGE387hMvNmWnCcTpS5NtT8z1",
-    symbol: "WTSLA",
-    name: "Wrapped Tesla Inc.",
-    decimals: 6,
-    supply: "500,000",
-    authority: "4Uoi3NxSQbp8dFqumxHxgXzJiEXvN5VvGCtUGTNuwAW6",
-    programId: "jEXgKE9NWJihHqLVAoXZ4e2TSZ7KkV7kub8j4ojcmZC",
-  },
-]
+// const tokenMetadata = [
+//   {
+//     mint: "FcqYDj4LjdptFMdMYd5MbuRbDt3gBHZJRXJ7vcqJMQ6b",
+//     symbol: "WAAPL",
+//     name: "Wrapped Apple Inc.",
+//     decimals: 6,
+//     supply: "1,000,000",
+//     authority: "4Uoi3NxSQbp8dFqumxHxgXzJiEXvN5VvGCtUGTNuwAW6",
+//     programId: "jEXgKE9NWJihHqLVAoXZ4e2TSZ7KkV7kub8j4ojcmZC",
+//   },
+//   {
+//     mint: "FoPUWmCdjBktTnni7piGGE387hMvNmWnCcTpS5NtT8z1",
+//     symbol: "WTSLA",
+//     name: "Wrapped Tesla Inc.",
+//     decimals: 6,
+//     supply: "500,000",
+//     authority: "4Uoi3NxSQbp8dFqumxHxgXzJiEXvN5VvGCtUGTNuwAW6",
+//     programId: "jEXgKE9NWJihHqLVAoXZ4e2TSZ7KkV7kub8j4ojcmZC",
+//   },
+// ];
 
-export default function Home() {
+export default async function Home() {
+  const connection = connect("devnet");
+  const assetRegistryFetch: any = async () => {
+    const assetRegistryAccounts = connection.getAccountsFactory(
+      ANCHOR_RWA_TEMPLATE_PROGRAM_ADDRESS,
+      ASSET_REGISTRY_DISCRIMINATOR,
+      getAssetRegistryDecoder(),
+    );
+    return await assetRegistryAccounts();
+  };
+
+  const assetRegistryAccounts: AssetRegistryData[] = await assetRegistryFetch();
+
+  console.log("assetRegistryAccounts: ", assetRegistryAccounts);
+
+  const assetRegistryData = assetRegistryAccounts.map((assetregistry) => {
+    return transformAssetAccount(assetregistry);
+  });
+
+  console.log("assetRegistryData", assetRegistryData);
+
+  const tokenMetadata = await getTokenMetadataByAssetRegistryCollection(assetRegistryAccounts)
+
+  console.log("tokenMetadata front: ", tokenMetadata);
+
+
   return (
     <div className="min-h-screen bg-background">
-      <Toaster />
       <Header />
 
       {/* Hero Section */}
@@ -95,7 +130,9 @@ export default function Home() {
               </span>
             </h1>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 text-pretty">
-              Explore the xStocks asset registry - bringing traditional equities to the Solana blockchain with full transparency and instant settlement.
+              Explore the wStocks asset registry - bringing traditional equities
+              to the Solana blockchain with full transparency and instant
+              settlement.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
               <a
@@ -118,7 +155,10 @@ export default function Home() {
       </section>
 
       {/* Create Asset Section */}
-      <section id="create" className="py-16 sm:py-24 bg-gradient-to-b from-solana-purple/5 via-transparent to-transparent">
+      <section
+        id="create"
+        className="py-16 sm:py-24 bg-gradient-to-b from-solana-purple/5 via-transparent to-transparent"
+      >
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-solana-green to-solana-purple p-0.5">
@@ -127,8 +167,12 @@ export default function Home() {
               </div>
             </div>
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Register New Asset</h2>
-              <p className="text-muted-foreground">Create a new tokenized security on Solana</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+                Register New Asset
+              </h2>
+              <p className="text-muted-foreground">
+                Create a new tokenized security on Solana
+              </p>
             </div>
           </div>
 
@@ -146,7 +190,9 @@ export default function Home() {
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-solana-purple">$1.5M+</p>
-              <p className="text-sm text-muted-foreground">Total Value Locked</p>
+              <p className="text-sm text-muted-foreground">
+                Total Value Locked
+              </p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-solana-cyan">400ms</p>
@@ -168,8 +214,12 @@ export default function Home() {
               <Database className="w-5 h-5 text-solana-green" />
             </div>
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Asset Registry</h2>
-              <p className="text-muted-foreground">On-chain registration records for tokenized securities</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+                Asset Registry
+              </h2>
+              <p className="text-muted-foreground">
+                On-chain registration records for tokenized securities
+              </p>
             </div>
           </div>
 
@@ -189,8 +239,12 @@ export default function Home() {
               <Coins className="w-5 h-5 text-solana-purple" />
             </div>
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Token Metadata</h2>
-              <p className="text-muted-foreground">SPL token details and on-chain metadata</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+                Token Metadata
+              </h2>
+              <p className="text-muted-foreground">
+                SPL token details and on-chain metadata
+              </p>
             </div>
           </div>
 
@@ -210,19 +264,28 @@ export default function Home() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-solana-green to-solana-purple flex items-center justify-center">
                 <span className="text-sm font-black text-background">xS</span>
               </div>
-              <span className="font-semibold text-foreground">xStocks</span>
+              <span className="font-semibold text-foreground">wStocks</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Powered by Solana. Built for the future of finance.
             </p>
             <div className="flex items-center gap-4">
-              <a href="#" className="text-sm text-muted-foreground hover:text-solana-green transition-colors">
+              <a
+                href="#"
+                className="text-sm text-muted-foreground hover:text-solana-green transition-colors"
+              >
                 Twitter
               </a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-solana-green transition-colors">
+              <a
+                href="#"
+                className="text-sm text-muted-foreground hover:text-solana-green transition-colors"
+              >
                 Discord
               </a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-solana-green transition-colors">
+              <a
+                href="#"
+                className="text-sm text-muted-foreground hover:text-solana-green transition-colors"
+              >
                 GitHub
               </a>
             </div>
@@ -230,5 +293,5 @@ export default function Home() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
