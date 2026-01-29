@@ -1,10 +1,13 @@
-# wStocks
+# wStocks – Frontend
 
-Aplicación web (DApp) para tokenizar acciones del mundo real y representarlas como tokens en la red de Solana.
+Interfaz web (DApp) del ecosistema **wStocks**. Este repositorio contiene el código del **frontend** que se conecta al programa Anchor `wstocks-anchor-template` para registrar activos del mundo real (RWA) y gestionar sus tokens SPL en la red de Solana.
 
 ## Intro
 
-wStocks te permite crear y visualizar tokens que representan acciones reales sobre Solana, integrándose con herramientas del ecosistema para ofrecer una experiencia rápida y sencilla desde el navegador.
+A nivel funcional, wStocks permite crear y visualizar tokens que representan acciones reales sobre Solana, consumiendo los datos del *asset registry* on-chain expuestos por el programa Anchor. Desde esta app el usuario puede registrar un nuevo activo, mintear supply adicional del token asociado y explorar el estado de los activos/tokenizados.
+
+- Repositorio GitHub (frontend): https://github.com/victoraranguren/wstocks-frontend-template
+- Programa Anchor (backend on-chain): https://github.com/victoraranguren/wstocks-anchor-template
 
 ## Tech stack
 
@@ -26,8 +29,8 @@ Este repositorio contiene el código fuente del **frontend**. Tecnologías princ
 
 1. Clona el repositorio:
    ```bash path=null start=null
-   git clone <url-del-repo>
-   cd rwa-frontend-template
+   git clone https://github.com/victoraranguren/wstocks-frontend-template.git
+   cd wstocks-frontend-template
    ```
 2. Instala dependencias (ejemplo con pnpm):
    ```bash path=null start=null
