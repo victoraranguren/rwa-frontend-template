@@ -1,114 +1,143 @@
 # wStocks – Frontend
 
-Interfaz web (DApp) del ecosistema **wStocks**. Este repositorio contiene el código del **frontend** que se conecta al programa Anchor `wstocks-anchor-template` para registrar activos del mundo real (RWA) y gestionar sus tokens SPL en la red de Solana.
+Web interface (DApp) for the **wStocks** ecosystem. This repository contains the **frontend** code that connects to the `wstocks-anchor-template` Anchor program to register Real World Assets (RWA) and manage their SPL tokens on the Solana network.
 
 ## Intro
 
-A nivel funcional, wStocks permite crear y visualizar tokens que representan acciones reales sobre Solana, consumiendo los datos del *asset registry* on-chain expuestos por el programa Anchor. Desde esta app el usuario puede registrar un nuevo activo, mintear supply adicional del token asociado y explorar el estado de los activos/tokenizados.
+Functionally, wStocks allows users to create and visualize tokens representing real-world stocks on Solana, consuming on-chain *asset registry* data exposed by the Anchor program. From this app, the user can register a new asset, mint additional supply of the associated token, and explore the status of tokenized assets.
 
-- Repositorio GitHub (frontend): https://github.com/victoraranguren/wstocks-frontend-template
-- Programa Anchor (backend on-chain): https://github.com/victoraranguren/wstocks-anchor-template
+* GitHub Repository (frontend): [https://github.com/victoraranguren/wstocks-frontend-template](https://github.com/victoraranguren/wstocks-frontend-template)
+* Anchor Program (on-chain backend): [https://github.com/victoraranguren/wstocks-anchor-template](https://github.com/victoraranguren/wstocks-anchor-template)
 
-## Tech stack
+## Tech Stack
 
-Este repositorio contiene el código fuente del **frontend**. Tecnologías principales:
+This repository contains the **frontend** source code. Main technologies:
 
-- **Next.js** (App Router)
-- **TypeScript**
-- **TailwindCSS** & **shadcn/ui**
-- **Framework kit** Solana kit y Solana Web3.js
-- **TanStack Query** para manejo de datos remotos y caché
+* **Next.js** (App Router)
+* **TypeScript**
+* **TailwindCSS** & **shadcn/ui**
+* **Framework kit**: Solana Kit and Solana Web3.js
+* **TanStack Query** for remote data management and caching
 
-## Requisitos previos
+## Prerequisites
 
-- Node.js >= 18
-- pnpm / npm / yarn instalado (el proyecto suele usar pnpm si está configurado en `package.json`)
-- Una API key de **Helius** para conectarse a la red de Solana
+* Node.js >= 18
+* pnpm / npm / yarn installed (the project typically uses pnpm if configured in `package.json`)
+* A **Helius** API key to connect to the Solana network
 
-## Instalación
+## Installation
 
-1. Clona el repositorio:
-   ```bash path=null start=null
-   git clone https://github.com/victoraranguren/wstocks-frontend-template.git
-   cd wstocks-frontend-template
-   ```
-2. Instala dependencias (ejemplo con pnpm):
-   ```bash path=null start=null
-   pnpm install
-   ```
+1. Clone the repository:
+```bash
+git clone https://github.com/victoraranguren/wstocks-frontend-template.git
+cd wstocks-frontend-template
 
-## Variables de entorno
-
-Crea un archivo `.env.local` en la raíz del proyecto (o utiliza el mecanismo de variables de entorno de tu elección) y define:
-
-```bash path=null start=null
-NEXT_PUBLIC_API=<helius-api-key>
 ```
 
-- `NEXT_PUBLIC_API`: API key de Helius utilizada para las peticiones relacionadas con la red de Solana.
 
-## Scripts habituales
+2. Install dependencies (example with pnpm):
+```bash
+pnpm install
 
-En función de cómo esté configurado el `package.json`, los comandos típicos serán:
+```
 
-- **Desarrollo**:
-  ```bash path=null start=null
-  pnpm dev
-  ```
-- **Build de producción**:
-  ```bash path=null start=null
-  pnpm build
-  ```
-- **Preview producción**:
-  ```bash path=null start=null
-  pnpm start
-  ```
 
-(Ajusta `pnpm` por `npm` o `yarn` si usas otro gestor de paquetes.)
 
-## Arquitectura del proyecto
+## Environment Variables
 
-La aplicación está organizada en capas claras para separar UI, lógica de datos y conexión con Solana:
+Create a `.env.local` file in the project root (or use your preferred environment variable mechanism) and define:
 
-- `app/`
-  - `layout.tsx`: layout raíz de Next.js. Configura fuentes, metadatos y envuelve toda la app con los *providers* globales:
-    - `QueryProvider` (React Query) para *fetching* y caché de datos on-chain.
-    - `Provider` de `solana/provider` que crea el cliente de Solana (Devnet) y expone el contexto de wallet a toda la UI.
-    - `Toaster` para notificaciones (`sonner`).
-  - `page.tsx`: página principal. Orquesta la experiencia de usuario:
-    - Usa `useQuery` de TanStack Query para leer periódicamente el estado del *asset registry* y los tokens desde el programa RWA en Solana.
-    - Pasa los datos resultantes a los componentes de presentación (`AssetRegistryCard`, `TokenMetadataCard`, etc.).
+```bash
+NEXT_PUBLIC_API=<helius-api-key>
 
-- `components/`
-  - `header.tsx`: cabecera fija con navegación básica y el botón de conexión de wallet.
-  - `connect-button-wallet.tsx`: componente que muestra el estado de la wallet (conectada/desconectada) y permite seleccionar Phantom/Solflare/Backpack usando los *hooks* de `@solana/react-hooks`.
-  - `create-asset-form.tsx`: formulario principal para registrar un nuevo activo:
-    - Gestiona el estado y validación del formulario (asset + token SPL).
-    - Construye y envía la instrucción `initializeAsset` al programa RWA en Solana.
-    - Usa `useSendTransaction` y `useWalletConnection` para firmar y enviar la transacción, e invalida la query `assets` de React Query tras el éxito.
-  - `asset-registry-card.tsx`: muestra la información de cada registro de activo (ISIN, autoridad, tipo, fecha, legal docs) y permite cerrar/eliminar el registro vía una instrucción on-chain.
-  - `token-metadata-card.tsx`: muestra metadatos del token SPL asociado (mint, supply, authority, programId) y expone una acción para incrementar el *supply* mediante una transacción al mismo programa.
-  - `theme-provider.tsx`: envoltorio pequeño sobre `next-themes` para el manejo de temas.
-  - `ui/`: colección de componentes de diseño reutilizables (botones, cards, inputs, selects, badges, toasts) generados con shadcn/ui y estilizados con Tailwind.
+```
 
-- `solana/provider/`
-  - `provider.tsx`: define el `SolanaProvider` de alto nivel y configura el cliente de Solana apuntando a Devnet, habilitando autodetección de wallets en el navegador. Cualquier componente que use los *hooks* de `@solana/react-hooks` se apoya en este provider.
+* `NEXT_PUBLIC_API`: Helius API key used for requests related to the Solana network.
 
-- `tanstack-query/components/`
-  - `provider.tsx`: inicializa un `QueryClient` único por sesión y lo expone mediante `QueryClientProvider` para que `useQuery` y demás hooks funcionen en toda la app.
+## Common Scripts
 
-- `lib/`
-  - `utils.ts`: utilidades de UI como `cn` para combinar clases Tailwind de forma segura.
+Depending on how `package.json` is configured, typical commands will be:
 
-- `styles/` y `app/globals.css`
-  - Configuración global de estilos, tokens de color y ajustes visuales generales de la app.
+* **Development**:
+```bash
+pnpm dev
 
-## Contribuir
+```
 
-1. Crea una rama desde `dev`.
-2. Implementa tus cambios.
-3. Abre un Pull Request describiendo el cambio realizado.
 
-## Licencia
+* **Production Build**:
+```bash
+pnpm build
 
-Pendiente de definir o actualizar según las necesidades del proyecto.
+```
+
+
+* **Production Preview**:
+```bash
+pnpm start
+
+```
+
+
+
+(Adjust `pnpm` to `npm` or `yarn` if using another package manager.)
+
+## Project Architecture
+
+The application is organized into clear layers to separate UI, data logic, and Solana connection:
+
+* `app/`
+* `layout.tsx`: Next.js root layout. Configures fonts, metadata, and wraps the entire app with global *providers*:
+* `QueryProvider` (React Query) for on-chain data *fetching* and caching.
+* `Provider` from `solana/provider` which creates the Solana client (Devnet) and exposes the wallet context to the entire UI.
+* `Toaster` for notifications (`sonner`).
+
+
+* `page.tsx`: Main page. Orchestrates the user experience:
+* Uses TanStack Query's `useQuery` to periodically read the *asset registry* state and tokens from the RWA program on Solana.
+* Passes resulting data to presentation components (`AssetRegistryCard`, `TokenMetadataCard`, etc.).
+
+
+
+
+* `components/`
+* `header.tsx`: Fixed header with basic navigation and the wallet connection button.
+* `connect-button-wallet.tsx`: Component that shows wallet status (connected/disconnected) and allows selecting Phantom/Solflare/Backpack using `@solana/react-hooks`.
+* `create-asset-form.tsx`: Main form to register a new asset:
+* Manages form state and validation (asset + SPL token).
+* Builds and sends the `initializeAsset` instruction to the RWA program on Solana.
+* Uses `useSendTransaction` and `useWalletConnection` to sign and send the transaction, and invalidates the React Query `assets` query upon success.
+
+
+* `asset-registry-card.tsx`: Displays information for each asset registry (ISIN, authority, type, date, legal docs) and allows closing/deleting the registry via an on-chain instruction.
+* `token-metadata-card.tsx`: Displays metadata of the associated SPL token (mint, supply, authority, programId) and exposes an action to increase *supply* via a transaction to the same program.
+* `theme-provider.tsx`: Small wrapper over `next-themes` for theme management.
+* `ui/`: Collection of reusable design components (buttons, cards, inputs, selects, badges, toasts) generated with shadcn/ui and styled with Tailwind.
+
+
+* `solana/provider/`
+* `provider.tsx`: Defines the high-level `SolanaProvider` and configures the Solana client pointing to Devnet, enabling wallet auto-detection in the browser. Any component using `@solana/react-hooks` relies on this provider.
+
+
+* `tanstack-query/components/`
+* `provider.tsx`: Initializes a unique `QueryClient` per session and exposes it via `QueryClientProvider` so `useQuery` and other hooks work throughout the app.
+
+
+* `lib/`
+* `utils.ts`: UI utilities like `cn` to safely combine Tailwind classes.
+
+
+* `styles/` and `app/globals.css`
+* Global style configuration, color tokens, and general visual adjustments for the app.
+
+
+
+## Contributing
+
+1. Create a branch from `dev`.
+2. Implement your changes.
+3. Open a Pull Request describing the change made.
+
+## License
+
+Pending definition or update according to project needs.
