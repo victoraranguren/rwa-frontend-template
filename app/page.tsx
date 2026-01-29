@@ -42,7 +42,7 @@ export default function Home() {
     console.log("getAssetRegistrysAccountsRaw: ", getAssetRegistrysAccountsRaw);
 
     const getProgramAccounts = getAssetRegistrysAccountsRaw.filter(
-      (account) => Number(account.account.space) === 320,
+      (account) => Number(account.account.space) === 380,
     );
 
     const accountsRaw = getProgramAccounts.map((account) =>
@@ -78,6 +78,7 @@ export default function Home() {
     queryFn: async () => {
       return await setData();
     },
+    refetchInterval: 5000,
   });
 
   return (

@@ -5,6 +5,7 @@ export interface AssetRegistryData {
     id: number;
     authority: string;
     mint: string;
+    assetName: string;
     assetSymbol: string;
     assetIsin: string;
     legalDocUri: string;
@@ -25,6 +26,7 @@ export interface AssetRegistryUI {
     id: number;
     authority: string;
     mint: string;
+    assetName: string;
     assetSymbol: string;
     assetIsin: string;
     legalDocUri: string;

@@ -33,6 +33,7 @@ import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface AssetRegistryFormData {
+  assetName: string;
   assetSymbol: string;
   assetIsin: string;
   legalDocUri: string;
@@ -44,7 +45,7 @@ interface TokenMetadataFormData {
   name: string;
   symbol: string;
   decimals: number;
-  initialSupply: string;
+  //initialSupply: string;
   uri: string;
 }
 
@@ -97,12 +98,13 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
     name: "",
     symbol: "",
     decimals: 6,
-    initialSupply: "1000",
+    //initialSupply: "1000",
     uri: "",
   });
 
   // Asset Registry Form State
   const [registryData, setRegistryData] = useState<AssetRegistryFormData>({
+    assetName: "",
     assetSymbol: "",
     assetIsin: "",
     legalDocUri: MOCK_LEGAL_DOC_URI,
@@ -117,6 +119,12 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
     const newErrors: Record<string, string> = {};
 
     // Registry validation
+    if (!registryData.assetName.trim()) {
+      newErrors.assetName = "Asset name is required";
+    } else if (registryData.assetName.length > 100) {
+      newErrors.assetName = "Name must be 100 characters or less";
+    }
+
     if (!registryData.assetSymbol.trim()) {
       newErrors.assetSymbol = "Asset symbol is required";
     } else if (registryData.assetSymbol.length > 10) {
@@ -146,14 +154,14 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
       newErrors.decimals = "Decimals must be between 0 and 9";
     }
 
-    if (!tokenData.initialSupply.trim()) {
-      newErrors.initialSupply = "Initial supply is required";
-    } else if (
-      Number.isNaN(Number(tokenData.initialSupply)) ||
-      Number(tokenData.initialSupply) <= 0
-    ) {
-      newErrors.initialSupply = "Please enter a valid supply amount";
-    }
+    // if (!tokenData.initialSupply.trim()) {
+    //   newErrors.initialSupply = "Initial supply is required";
+    // } else if (
+    //   Number.isNaN(Number(tokenData.initialSupply)) ||
+    //   Number(tokenData.initialSupply) <= 0
+    // ) {
+    //   newErrors.initialSupply = "Please enter a valid supply amount";
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -185,12 +193,13 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
       const submissionData = {
         ...registryData,
         legalDocUri: MOCK_LEGAL_DOC_URI,
+        assetName: registryData.assetName,
         assetSymbol: registryData.assetSymbol.toUpperCase(),
         metadata: {
           ...tokenData,
           symbol: tokenData.symbol.toUpperCase(),
           decimals: Number(tokenData.decimals),
-          initialSupply: tokenData.initialSupply,
+          //initialSupply: tokenData.initialSupply,
         },
       };
 
@@ -198,6 +207,7 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
 
       interface InitializeAssetInstructionArgs {
         id: bigint;
+        assetName: string;
         assetIsin: string;
         assetSymbol: string;
         assetType: number;
@@ -210,6 +220,7 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
 
       const submissionFormattedData: InitializeAssetInstructionArgs = {
         id: BigInt(Date.now()),
+        assetName: submissionData.assetName,
         assetIsin: submissionData.assetIsin,
         assetSymbol: submissionData.assetSymbol.toUpperCase(),
         assetType: submissionData.assetType,
@@ -236,8 +247,10 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
       console.log("=====================================");
 
       try {
-        const uniqueIdBuffer = Buffer.alloc(8);
-        uniqueIdBuffer.writeBigUInt64LE(submissionFormattedData.id);
+        const buffer = new ArrayBuffer(8);
+        const view = new DataView(buffer);
+        view.setBigUint64(0, BigInt(submissionFormattedData.id), true); // true = Little Endian
+        const uniqueIdBuffer = Buffer.from(buffer);
         const [assetRegistryPda] = PublicKey.findProgramAddressSync(
           [
             Buffer.from("asset_registry"),
@@ -352,6 +365,28 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
                 On-chain registration data
               </p>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="assetName" className="text-foreground">
+              Asset Name <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="assetName"
+              placeholder="e.g., Apple, Tesla"
+              value={registryData.assetName}
+              onChange={(e) =>
+                setRegistryData({
+                  ...registryData,
+                  assetName: e.target.value,
+                })
+              }
+              className="bg-secondary/50 border-border focus:border-solana-green focus:ring-solana-green/20"
+              maxLength={50}
+            />
+            {errors.assetName && (
+              <p className="text-xs text-destructive">{errors.assetName}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -534,7 +569,7 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
               )}
             </div>
 
-            <div className="space-y-2">
+            {/*<div className="space-y-2">
               <Label htmlFor="initialSupply" className="text-foreground">
                 Initial Supply <span className="text-destructive">*</span>
               </Label>
@@ -552,7 +587,7 @@ export function CreateAssetForm({ onSubmit }: CreateAssetFormProps) {
                   {errors.initialSupply}
                 </p>
               )}
-            </div>
+            </div>*/}
           </div>
 
           <div className="p-4 rounded-xl bg-solana-purple/10 border border-solana-purple/20">

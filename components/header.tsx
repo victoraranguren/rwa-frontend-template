@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
-import { WalletButtons } from "@/solana/provider/provider"
+import { Badge } from "@/components/ui/badge";
+import { WalletButtons } from "@/solana/provider/provider";
 
 export function Header() {
   return (
@@ -15,7 +15,10 @@ export function Header() {
             </div>
             <div>
               <span className="text-xl font-bold text-foreground">wStocks</span>
-              <Badge variant="outline" className="ml-2 text-xs border-solana-cyan/50 text-solana-cyan">
+              <Badge
+                variant="outline"
+                className="hidden sm:flex ml-2 text-xs border-solana-cyan/50 text-solana-cyan"
+              >
                 Solana
               </Badge>
             </div>
@@ -23,10 +26,16 @@ export function Header() {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#registry" className="text-sm text-muted-foreground hover:text-solana-green transition-colors">
+            <a
+              href="#registry"
+              className="text-sm text-muted-foreground hover:text-solana-green transition-colors"
+            >
               Asset Registry
             </a>
-            <a href="#tokens" className="text-sm text-muted-foreground hover:text-solana-green transition-colors">
+            <a
+              href="#tokens"
+              className="text-sm text-muted-foreground hover:text-solana-green transition-colors"
+            >
               Tokens
             </a>
             <a
@@ -41,15 +50,16 @@ export function Header() {
 
           {/* CTA */}
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-solana-green/10 border border-solana-green/30">
-              <div className="w-2 h-2 rounded-full bg-solana-green animate-pulse" />
-              <span className="text-xs text-solana-green font-medium">Devnet</span>
+            <div className="sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-solana-green/10 border border-solana-green/30">
+              <div className="hidden sm:flex w-2 h-2 rounded-full bg-solana-green animate-pulse" />
+              <span className="text-xs text-solana-green font-medium">
+                Devnet
+              </span>
             </div>
             <WalletButtons />
-
           </div>
         </div>
       </div>
     </header>
-  )
+  );
 }

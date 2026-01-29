@@ -39,23 +39,10 @@ interface TokenMetadataCardProps {
 export function TokenMetadataCard({ token }: TokenMetadataCardProps) {
   const queryClient = useQueryClient();
   const {
-    connectors, // Available wallet connectors
-    connect, // Connect to a wallet
-    disconnect, // Disconnect current wallet
     wallet, // Current wallet session
-    status, // 'disconnected' | 'connecting' | 'connected'
-    currentConnector, // Current connected wallet info,
-    connecting,
   } = useWalletConnection();
 
-  const {
-    send,
-    isSending,
-    status: statusTransaction,
-    signature,
-    error,
-    reset,
-  } = useSendTransaction();
+  const { send, status: statusTransaction } = useSendTransaction();
 
   const walletAddress = wallet?.account.address;
 
@@ -208,7 +195,7 @@ export function TokenMetadataCard({ token }: TokenMetadataCardProps) {
           <div className="bg-secondary/50 rounded-xl p-4 border border-border">
             <p className="text-xs text-muted-foreground mb-1">Supply</p>
             <p className="text-xl font-bold text-solana-green">
-              {token.supply || "∞"}
+              {token.supply || "0"}
             </p>
           </div>
         </div>
